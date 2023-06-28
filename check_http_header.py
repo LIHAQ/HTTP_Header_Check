@@ -1,73 +1,95 @@
+import argparse
 import requests
 import urllib3
-import argparse
 
-http_head = [
-    "X-Frame-Options",
-    "X-Content-Type-Options",
-    "X-XSS-Protection",
-    "Content-Security-Policy",
-    "Strict-Transport-Security",
-    "Referrer-Policy",
-    "X-Download-Options",
-    "X-Permitted-Cross-Domain-Policies"
-]
 
-user_agent = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:95.0) Gecko/20100101 Firefox/95.0",
-    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
-    "Accept-Language": "zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2",
-    "Accept-Encoding": "gzip, deflate",
-    "Connection":"close",
-}
+def check_missing_headers(url):
+    # 发送HTTP GET请求
+    response = requests.get(url, verify=False)
 
-user_agent1 = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:95.0) Gecko/20100101 Firefox/95.0",
-    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
-    "Accept-Language": "zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2",
-    "Accept-Encoding": "gzip, deflate",
-    "Connection":"close",
-    "Origin":"https://test.com"
-}
+    # 检查是否存在缺失的请求头
+    required_headers = [
+        "X-Frame-Options",
+        "X-Content-Type-Options",
+        "X-XSS-Protection",
+        "Content-Security-Policy",
+        "Strict-Transport-Security",
+        "Referrer-Policy",
+        "X-Download-Options",
+        "X-Permitted-Cross-Domain-Policies",
+    ]
 
-get_http_headlist = []
+    missing_headers = [
+        header for header in required_headers if header not in response.headers
+    ]
 
-def get_url(url):
-    try:
-        requests.packages.urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)
-        url_html = requests.get(url=url, headers=user_agent, verify=False)
-        url_html2 = requests.get(url=url, headers=user_agent1, verify=False)
-    except requests.exceptions.SSLError as e:
-        print("SSL证书验证失败：%s" % str(e))
-        return []
-    if url_html2.headers.get("Access-Control-Allow-Origin"):
-        if "https://test.com" in url_html2.headers.get("Access-Control-Allow-Origin"):
-            print("%s 存在CORS跨域漏洞"%url)
-        else:
-            print("%s 不存在CORS跨域漏洞"%url)
-    for key in url_html.headers.keys():
-        get_http_headlist.append(key)
-    return get_http_headlist
+    # 输出结果
+    result = ""
+    if missing_headers:
+        result += "以下HTTP头信息缺失：\n"
+        for i, header in enumerate(missing_headers):
+            result += f"- {header}"
+            if i < len(missing_headers) - 1:
+                result += "\n"
+    else:
+        result += "没有检测到HTTP头信息缺失"
 
-def check_http_head(list_http_headers):
-    for i in http_head:
-        if i not in list_http_headers:
-            print("HTTP %s 缺失"%i)
+    print(result)
+    return result
 
-def patch_ssl_ciphers():
-    try:
-        urllib3.util.ssl_.DEFAULT_CIPHERS += 'HIGH:!DH:!aNULL'
-    except AttributeError:
-        pass  # no problem, fallback to the older version urllib3
+
+def check_cors_vulnerability(url, origin):
+    # 发送跨域请求
+    headers = {"Origin": origin}
+    response = requests.get(url, headers=headers, verify=False)
+
+    # 检查响应头是否包含 Access-Control-Allow-Origin
+    if "Access-Control-Allow-Origin" in response.headers:
+        allowed_origin = response.headers["Access-Control-Allow-Origin"]
+        if allowed_origin == "*" or allowed_origin == origin:
+            return True
+
+    return False
+
+
+def save_result_to_file(result, filename):
+    with open(filename, "w") as file:
+        file.write(result)
+    print(f"结果已导出到 {filename} 文件")
+
 
 def main():
-    patch_ssl_ciphers()
-    parse = argparse.ArgumentParser()
-    parse.description = 'input target url'
-    parse.add_argument("-u","--input u",help="target url",dest="url",type=str,default=None)
-    args = parse.parse_args()
-    list_http_headers = get_url(args.url)
-    check_http_head(list_http_headers)
+    # 解析命令行参数
+    parser = argparse.ArgumentParser(description="检测HTTP请求头缺失和CORS跨域漏洞")
+    parser.add_argument("-u", "--url", required=True, help="目标URL")
+    parser.add_argument(
+        "-o", "--origin", default="https://example.com", help="设置请求头中的Origin字段"
+    )
+    parser.add_argument("-f", "--file", default=None, help="导出结果的文件名")
+    args = parser.parse_args()
+
+    # 调用函数进行检测
+    print("开始检测HTTP请求头缺失和CORS跨域漏洞...")
+    print("目标URL:", args.url)
+    print("Origin:", args.origin)
+    print("---------------------------------------------")
+
+    result = check_missing_headers(args.url)
+    print("---------------------------------------------")
+    has_cors_vulnerability = check_cors_vulnerability(args.url, args.origin)
+    if has_cors_vulnerability:
+        print(f"{args.url} 存在CORS跨域漏洞！")
+    else:
+        print(f"{args.url} 不存在CORS跨域漏洞。")
+    print("---------------------------------------------")
+
+    if args.file is not None:
+        if args.file.endswith(".txt"):
+            save_result_to_file(result, args.file)
+        else:
+            print("请指定以 '.txt' 结尾的文件名进行导出。")
+
 
 if __name__ == "__main__":
+    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
     main()
