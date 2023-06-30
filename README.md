@@ -25,7 +25,7 @@ pip install -r requirements.txt
 在命令行中运行以下命令来检测HTTP请求头缺失和CORS跨域漏洞：
 
 ````shell
-python script.py -u <URL> -o <Origin> -f <filename>
+python HTTP_Header_Check.py -u <URL> -o <Origin> -f <filename>
 ````
 
 参数说明：
@@ -37,9 +37,10 @@ python script.py -u <URL> -o <Origin> -f <filename>
 以下示例演示如何使用该工具进行检测：
 
 ````shell
-python script.py -u https://example.com -o https://example.com -f result.txt
+python HTTP_Header_Check.py -u https://www.baidu.com -o https://example.com -f result.txt
 ````
-![image](https://github.com/LIHAQI/check_http_header/assets/57976650/6d2ab3c9-8798-41af-bf1c-4ad99b2b89a6)
+![image](https://github.com/LIHAQI/HTTP_Header_Check/assets/57976650/7dcfd00a-b443-4286-b29f-242c8936f220)
+
 
 
 ## 注意事项
