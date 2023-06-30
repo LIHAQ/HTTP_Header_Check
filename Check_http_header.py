@@ -9,25 +9,25 @@ def check_missing_headers(url):
 
     # 检查是否存在缺失的请求头
     required_headers = [
-        "X-Frame-Options",
-        "X-Content-Type-Options",
-        "X-XSS-Protection",
-        "Content-Security-Policy",
-        "Strict-Transport-Security",
-        "Referrer-Policy",
-        "X-Download-Options",
-        "X-Permitted-Cross-Domain-Policies",
+        "X-Frame-Options"，
+        "X-Content-Type-Options"，
+        "X-XSS-Protection"，
+        "Content-Security-Policy"，
+        "Strict-Transport-Security"，
+        "Referrer-Policy"，
+        "X-Download-Options"，
+        "X-Permitted-Cross-Domain-Policies"，
     ]
 
     missing_headers = [
-        header for header in required_headers if header not in response.headers
+        header for header 在 required_headers if header not 在 response.headers
     ]
 
     # 输出结果
     result = ""
     if missing_headers:
         result += "以下HTTP头信息缺失：\n"
-        for i, header in enumerate(missing_headers):
+        for i, header 在 enumerate(missing_headers):
             result += f"- {header}"
             if i < len(missing_headers) - 1:
                 result += "\n"
@@ -44,9 +44,9 @@ def check_cors_vulnerability(url, origin):
     response = requests.get(url, headers=headers, verify=False)
 
     # 检查响应头是否包含 Access-Control-Allow-Origin
-    if "Access-Control-Allow-Origin" in response.headers:
+    if "Access-Control-Allow-Origin" 在 response.headers:
         allowed_origin = response.headers["Access-Control-Allow-Origin"]
-        if allowed_origin == "*" or allowed_origin == origin:
+        if allowed_origin == "*" 或 allowed_origin == origin:
             return True
 
     return False
@@ -61,11 +61,11 @@ def save_result_to_file(result, filename):
 def main():
     # 解析命令行参数
     parser = argparse.ArgumentParser(description="检测HTTP请求头缺失和CORS跨域漏洞")
-    parser.add_argument("-u", "--url", required=True, help="目标URL")
+    parser.add_argument("-u"， "--url", required=True, help="目标URL")
     parser.add_argument(
-        "-o", "--origin", default="https://example.com", help="设置请求头中的Origin字段"
+        "-o"， "--origin", default="https://example.com", help="设置请求头中的Origin字段"
     )
-    parser.add_argument("-f", "--file", default=None, help="导出结果的文件名")
+    parser.add_argument("-f"， "--file", default=None, help="导出结果的文件名")
     args = parser.parse_args()
 
     # 调用函数进行检测
@@ -84,12 +84,12 @@ def main():
     print("---------------------------------------------")
 
     if args.file is not None:
-        if args.file.endswith(".txt"):
+        if args.file。endswith(".txt"):
             save_result_to_file(result, args.file)
         else:
             print("请指定以 '.txt' 结尾的文件名进行导出。")
 
 
 if __name__ == "__main__":
-    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+    urllib3.disable_warnings(urllib3.exceptions。InsecureRequestWarning)
     main()
