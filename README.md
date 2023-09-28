@@ -32,15 +32,20 @@ python HTTP_Header_Check.py -u <URL> -o <Origin> -f <filename>
 - -u 或 --url：目标URL。
 - -o 或 --origin：设置请求头中的Origin字段（可选，默认为 https://example.com）。
 - -f 或 --file：导出结果的文件名（可选）。
+- -d 或 --debug：启用调试模式
 
 ## 示例
 以下示例演示如何使用该工具进行检测：
-
 ````shell
 python HTTP_Header_Check.py -u https://www.baidu.com -o https://example.com -f result.txt
 ````
 ![image](https://github.com/LIHAQI/HTTP_Header_Check/assets/57976650/7dcfd00a-b443-4286-b29f-242c8936f220)
 
+以下是启用调试模式的检测：
+````shell
+python HTTP_Header_Check.py -u https://www.baidu.com -d
+````
+![image](https://github.com/LIHAQI/HTTP_Header_Check/assets/57976650/4e5e2365-057f-402c-a343-81c6b64849b1)
 
 
 ## 注意事项
